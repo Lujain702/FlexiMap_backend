@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings  
+from django.contrib.auth import get_user_model
 
 
 class Category(models.Model):
@@ -14,19 +15,24 @@ class Map(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, 
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        null=True,  
+        null=True,
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
+    category = models.ForeignKey('Category', on_delete=models.SET_NULL, null=True, blank=True)
+
+    tags = models.ManyToManyField('Tag', related_name='maps', blank=True)
+
     def save(self, *args, **kwargs):
         if not self.created_by:
-            self.created_by = User.objects.first()  
+            self.created_by = get_user_model().objects.first()  
         super(Map, self).save(*args, **kwargs)
 
     def __str__(self):
         return self.name
+
 
 
 class Tag(models.Model):

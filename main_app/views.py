@@ -6,6 +6,11 @@ from .serializers import MarkerSerializer
 from rest_framework import viewsets
 from .models import Map, Marker, Category, Comment, Tag
 from .serializers import MapSerializer, MarkerSerializer, CategorySerializer, CommentSerializer, TagSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.permissions import IsAuthenticated
+
+
 
 User = get_user_model()
 
@@ -22,18 +27,21 @@ def register_user(request):
         return Response({'message': 'User registered successfully'})
     except Exception as e:
         return Response({'error': f'Registration failed: {str(e)}'}, status=400)
-
 # -------------------
 
 @api_view(['POST'])
 def login_user(request):
     data = request.data
-    email = data.get('email')
+    username = data.get('email')
     password = data.get('password')
 
-    user = authenticate(request, email=email, password=password)
+    user = authenticate(request, username=username, password=password)
     if user:
-        return Response({'message': 'Login successful'})
+        refresh = RefreshToken.for_user(user)
+        return Response({
+            'message': 'Login successful',
+            'token': str(refresh.access_token),
+        })
     return Response({'error': 'Invalid credentials'}, status=400)
 
 # -------------------
@@ -62,16 +70,25 @@ def login_company(request):
 
     user = authenticate(request, email=email, password=password)
     if user and user.is_company:
-        return Response({'message': 'Company login successful'})
+        refresh = RefreshToken.for_user(user)
+        return Response({
+            'message': 'Company login successful',
+            'token': str(refresh.access_token),
+        })
     return Response({'error': 'Invalid credentials'}, status=400)
+
 
 # -------------------
 
 class MapViewSet(viewsets.ModelViewSet):
     queryset = Map.objects.all()
     serializer_class = MapSerializer
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
 
 class MarkerViewSet(viewsets.ModelViewSet):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
     queryset = Marker.objects.all()
     serializer_class = MarkerSerializer
 

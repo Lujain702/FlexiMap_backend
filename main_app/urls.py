@@ -19,5 +19,5 @@ urlpatterns = [
     path('company/login/', views.login_company, name='login_company'),
 
     
-    path('api/', include(router.urls)),  
+    path('', include(router.urls)),  
 ]

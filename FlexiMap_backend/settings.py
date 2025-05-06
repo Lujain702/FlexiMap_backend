@@ -133,8 +133,14 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOW_ALL_ORIGINS = True
 AUTHENTICATION_BACKENDS = [
-    'accounts.backends.EmailBackend',  # ← custom backend
-    'django.contrib.auth.backends.ModelBackend',  # ← default fallback
+    'accounts.backends.EmailBackend',  
+    'django.contrib.auth.backends.ModelBackend',  
 ]
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
 
 
